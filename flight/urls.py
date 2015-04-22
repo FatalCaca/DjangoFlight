@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 from django.http import HttpResponse
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+import json
 
 
 class ReservationSerializer(serializers.HyperlinkedModelSerializer):
@@ -39,25 +40,27 @@ class FlightSerializer(serializers.Serializer):
 	pk = serializers.IntegerField()
 	departure = serializers.CharField(max_length=200)
 	arrival = serializers.CharField(max_length=200)
+	date = serializers.DateTimeField()
 
 	total_available_seats = serializers.IntegerField()
 	classes = FlightClassSerializer(many=True)
 
 	class Meta:
 		model = Flight
-		fields = ('departure', 'arrival', 'total_available_seats', 'classes')
+		fields = ('departure', 'arrival', 'total_available_seats', 'classes', 'date')
 
 
 class FlightSerializerList(serializers.Serializer):
 	pk = serializers.IntegerField()
 	departure = serializers.CharField(max_length=200)
 	arrival = serializers.CharField(max_length=200)
+	date = serializers.DateTimeField()
 
 	total_available_seats = serializers.IntegerField()
 
 	class Meta:
 		model = Flight
-		fields = ('departure', 'arrival', 'total_available_seats')
+		fields = ('departure', 'arrival', 'total_available_seats', 'date')
 
 
 class FlightViewSet(viewsets.ModelViewSet):
@@ -108,15 +111,17 @@ def deleteReservationViewSet(request, id):
 		reservation = Reservation.objects.get(pk=id)
 		iden = reservation.pk
 		reservation.delete()
-		return HttpResponse('{\n   \'status\' : \'OK\''
-						+ ',\n   \'message\' : \'réservation ' + reservation.__str__() + '\''
-						+ ',\n   \'id\' : \'' + repr(iden) + '\''
-						+ '\n}')
+		return HttpResponse('{\n   "status" : "OK"'
+						+ ',\n   "message" : "réservation ' + reservation.__str__() + ' a ete annulee"'
+						+ ',\n   "id" : "' + repr(iden) + '"'
+						+ '\n}',
+						"application/json")
 	except:
-		return HttpResponse('{\n   \'status\' : \'Fail\''
-						+ ',\n   \'message\' : \'la réservation n existe pas\''
-						+ ',\n   \'id\' : \'\''
-						+ '\n}')
+		return HttpResponse('{\n   "status" : "Fail"'
+						+ ',\n   "message" : "la réservation n existe pas"'
+						+ ',\n   "id" : ""'
+						+ '\n}',
+						"application/json")
 
 def createReservation(flight_id, flight_class_id, user):
 	fail = False
@@ -155,10 +160,11 @@ def createReservation(flight_id, flight_class_id, user):
 			message = 'Erreur lors de la création de la reservation'
 			status = 'Fail'
 
-	return HttpResponse('{\n   \'status\' : \'' + status + '\''
-						+ ',\n   \'message\' : \'' + message + '\''
-						+ ',\n   \'id\' : \'' + repr(identifier) + '\''
-						+ '\n}')
+	return HttpResponse('{\n   "status" : "' + status + '"'
+						+ ',\n   "message" : "' + message + '"'
+						+ ',\n   "id" : "' + repr(identifier) + '"'
+						+ '\n}',
+						"application/json")
 
 @api_view(['POST', 'PUT'])
 @authentication_classes((TokenAuthentication,))
@@ -172,11 +178,8 @@ def makeReservationView(request):
 	message = ''
 	fail = False
 	flight_id = 0
-	flight_class_text = ""
+	flight_class_id = ""
 	user = None
-
-	if request.method != 'POST':
-		return HttpResponse("POST only")
 
 	if request.user.is_authenticated():
 		username = request.user.username
@@ -185,22 +188,23 @@ def makeReservationView(request):
 		message = 'vous n êtes pas identifié'
 		status = 'Fail'
 		fail = True
-
 	try:
-		flight_id = request.POST["flight_id"]
-		flight_class_text = request.POST["flight_class"]
+		flight_id = request.data['flight_id']
+		flight_class_id = request.data['flight_class_id']
 	except:
+		print(sys.exc_info()[0])
 		status = 'Fail'
 		message = 'données entrées incorrectes'
 		fail = True
 
 	if not fail:
-		return createReservation(flight_id, flight_class_text, user)
+		return createReservation(flight_id, flight_class_id, user)
 	else:
-		return HttpResponse('{\n   \'status\' : \'Fail\''
-						+ ',\n   \'message\' : \'Données entrées incorrectes\''
-						+ ',\n   \'id\' : \'\''
-						+ '\n}')
+		return HttpResponse('{\n   "status" : "Fail"'
+						+ ',\n   "message" : "Données entrées incorrectes"'
+						+ ',\n   "id" : ""'
+						+ '\n}',
+						"application/json")
 
 
 router = routers.DefaultRouter()
@@ -215,5 +219,5 @@ urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^api-token-auth/?', views.obtain_auth_token),
     url(r'^reservation/(?P<id>[0-9]+)/cancel/?', deleteReservationViewSet),
-    url(r'^reservation/create/?', makeReservationView),
+    url(r'^reservation/?', makeReservationView),
 ]
