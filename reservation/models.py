@@ -30,7 +30,7 @@ class Flight(models.Model):
 				 if len(x.reservation_set.all()) < x.seats_amount]
 
 	def classes(self):
-		return self.flight_class_set.all()
+		return self.flightclass_set.all()
 
 	def __str__(self):
 		return self.departure + ' vers ' + self.arrival + ' le '\
@@ -61,6 +61,12 @@ class Reservation(models.Model):
 
 	def price(self):
 		return self.flight_class.price
+
+	def flight_id(self):
+		return self.flight.pk
+
+	def flight_class_if(self):
+		return self.flight_class.pk
 
 	def __str__(self):
 		return 'de ' + self.user.login + ' pour le vol  '\

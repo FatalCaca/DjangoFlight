@@ -15,23 +15,24 @@ from django.shortcuts import get_object_or_404
 
 
 class ReservationSerializer(serializers.HyperlinkedModelSerializer):
-	flight = serializers.StringRelatedField()
-	flight_class = serializers.StringRelatedField()
+	flight_id = serializers.IntegerField()
+	flight_class_id = serializers.IntegerField()
 	price = serializers.IntegerField()
 
 	class Meta:
 		model = Reservation
-		fields = ('pk', 'flight', 'flight_class', 'price')
+		fields = ('pk', 'flight_id', 'flight_class_id', 'price')
 
 
 class FlightClassSerializer(serializers.Serializer):
 	pk = serializers.IntegerField()
 	text = serializers.StringRelatedField()
 	available_seats = serializers.IntegerField()
+	price = serializers.IntegerField()
 
 	class Meta:
 		model = FlightClass
-		fields = ('pk', 'text', 'available_seats')
+		fields = ('pk', 'text', 'available_seats', 'price')
 
 
 class FlightSerializer(serializers.Serializer):
@@ -92,7 +93,7 @@ class ReservationViewSet(viewsets.ModelViewSet):
 
 
 class AvailableFlightsViewSet(viewsets.ModelViewSet):
-	serializer_class = FlightSerializer
+	serializer_class = FlightSerializerList
 	queryset = Flight.objects.all()
 
 	def get_queryset(self):
