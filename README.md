@@ -2,7 +2,7 @@
 WebService pour la réservation de vols
 
 * Frédéric TURPIN
-* Simon BALLU
+* Simon BALLUAIS
 
 17 avril 2015
 
@@ -25,13 +25,14 @@ Content-Type: application/json
 | departure             | chaîne |
 | arrival               | chaîne |
 | total_available_seats | entier |
+| date                  | chaîne |
 | flightClasses         | tableau de Classes |
 
 | Classe (FlightClass) |  Type  |
 |-----------------------|--------|
 | pk                    | entier |
 | text                  | chaîne |
-| seats_amount          | entier |
+| available_seats       | entier |
 | price                 |  réel  |
 
 | Réservation           |  Type  |
@@ -39,6 +40,7 @@ Content-Type: application/json
 | pk                    | entier |
 | flight                | entier |
 | flight_class          | entier |
+| price                 |  réel  |
 
 ![Modèle des données de l'API](doc/data-api.png)
 Diagramme des données de l'API.
@@ -58,12 +60,16 @@ Retourne une liste d'objets :
 	{
 		"pk": 1,
 		"departure": "London (UK)",
-		"destination": "Beijing (CN)"
+		"destination": "Beijing (CN)",
+		"total_available_seats": 100,
+		"date": "2015-04-22T12:10:00"
 	},
 	{
 		"pk": 2,
 		"departure": "London (UK)",
-		"destination": "Beijing (CN)"
+		"destination": "Beijing (CN)",
+		"total_available_seats": 100,
+		"date": "2015-04-22T12:10:00"
 	},
 ]
 ```
@@ -83,13 +89,15 @@ Retourne une liste d'objets :
 		"pk": 1,
 		"departure": "London (UK)",
 		"destination": "Beijing (CN)",
-		"date": "2015-4-17"
+		"total_available_seats": 100,
+		"date": "2015-04-22T12:10:00"
 	},
 	{
 		"pk": 2,
 		"departure": "London (UK)",
 		"destination": "Beijing (CN)",
-		"date": "2015-4-17"
+		"total_available_seats": 100,
+		"date": "2015-04-22T12:10:00"
 	},
 ]
 ```
@@ -108,7 +116,8 @@ Retourne un vol :
 	"pk": 1,
 	"departure": "London (UK)",
 	"destination": "Beijing (CN)",
-	"date": "2015-4-17",
+	"total_available_seats": 100,
+	"date": "2015-04-22T12:10:00",
 	"flightClasses": [
 		{
 			"pk": 1,
@@ -123,7 +132,7 @@ Retourne un vol :
 
 ## Reservations
 
-Ces données ne sont accessibles qu'avec un jeton valpke.
+Ces données ne sont accessibles qu'avec un jeton valable.
 
 ### Réservations prises
 
@@ -163,8 +172,8 @@ Demande un objet construit comme suit :
 
 ```json
 {
-	"flight": 1,
-	"flight_class": 1
+	"flight_id": 1,
+	"flight_class_id": 1
 }
 ```
 
@@ -191,7 +200,8 @@ Retourne un objet :
 ```json
 {
 	"status": "OK",
-	"message": "Réservation annulée"
+	"message": "Réservation annulée",
+	"id": 1
 }
 ```
 
